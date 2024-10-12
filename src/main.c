@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include "malloc_dbg.h"
 #include "till.h"
 
-static void clear_stdin();
+static int read_line(char *str);
 static void new_customer(till_p tills);
 static void serve_customer(till_p tills);
 static void open_close_till(till_p tills);
@@ -24,7 +25,7 @@ int main() {
                "4) Imprimir a lista de clientes em espera\n"
                "5) Imprimir o status dos caixas\n"
                "Digite um comando: ");
-        scanf("%c", &op);
+        scanf("%c%*c", &op);
 
         switch (op) {
             case '1': // -- Cadastrar cliente --
@@ -80,9 +81,18 @@ int main() {
     return 0;
 }
 
-static void clear_stdin() {
-    char c;
-    while ((c = getchar()) != '\n' && c != EOF) {}
+int read_line(char *str) {
+    char tmp[256];
+
+    if (fgets(tmp, sizeof(tmp), stdin) == NULL) {
+        fprintf(stderr, "fgets() falhou\n");
+        str[0] = '\0';
+        return 1;
+    }
+
+    tmp[strcspn(tmp, "\n")] = '\0';
+
+    return 0;
 }
 
 static void new_customer(till_p tills) {
@@ -92,7 +102,8 @@ static void new_customer(till_p tills) {
 
     do {
         printf("Digite o número do caixa (1 a %d): ", TILL_COUNT);
-    } while (scanf("%d", &till_id) != 1 && till_id < 0 || till_id > TILL_COUNT);
+    } while (scanf("%d%*c", &till_id) != 1 &&
+             (till_id < 0 || till_id > TILL_COUNT));
 
     till = till_find(tills, till_id);
     if (till->available == false) {
@@ -101,16 +112,16 @@ static void new_customer(till_p tills) {
     }
 
     printf("Digite o nome do cliente: ");
-    fgets(new_customer.name, sizeof(new_customer.name), stdin);
+    read_line(new_customer.name);
 
     printf("Digite o CPF do cliente: ");
-    scanf("%d", &new_customer.cpf);
+    scanf("%d%*c", &new_customer.cpf);
 
     printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
-    scanf("%d", &new_customer.priority);
+    scanf("%d%*c", &new_customer.priority);
 
     printf("Digite a quantidade de itens na compra do cliente: ");
-    scanf("%d", &new_customer.items_qty);
+    scanf("%d%*c", &new_customer.items_qty);
 
     queue_set(&till->queue, &new_customer);
 }
@@ -121,7 +132,7 @@ static void serve_customer(till_p tills) {
     customer_t customer;
 
     printf("Digite o número do caixa a ter cliente atendido: ");
-    scanf("%d", &till_id);
+    scanf("%d%*c", &till_id);
 
     till = till_find(tills, till_id);
     if (till->available == false) {
@@ -144,7 +155,8 @@ static void open_close_till(till_p tills) {
 
     do {
         printf("Selecione o número do caixa a ser aberto/fechado: ");
-    } while (scanf("%d", &till_id) != 1 && till_id < 0 || till_id > TILL_COUNT);
+    } while (scanf("%d%*c", &till_id) != 1 &&
+             (till_id < 0 || till_id > TILL_COUNT));
 
     till = till_find(tills, till_id);
 
@@ -154,7 +166,7 @@ static void open_close_till(till_p tills) {
         } else {
             printf("O caixa está fechado. quer abri-lo? (s ou n): ");
         }
-    } while (scanf("%c", &op) != 1 &&
+    } while (scanf("%c%*c", &op) != 1 &&
              op != 's' && op != 'n' && op != 'S' && op != 'N');
 
     if (op == 's' || op == 'S') {
