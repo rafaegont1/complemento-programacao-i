@@ -16,8 +16,6 @@ void queue_deinit(queue_p q) {
         it = it->next;
         free(rm);
     }
-
-    q->len = 0;
 }
 
 void queue_set(queue_p q, const customer_p new_customer) {
@@ -25,9 +23,10 @@ void queue_set(queue_p q, const customer_p new_customer) {
 
     new_node->customer = *new_customer;
 
-    if (queue_empty(q) == true) {
+    if ((queue_empty(q) == true) ||
+        (new_customer->priority < q->first->customer.priority)) {
+        new_node->next = q->first;
         q->first = new_node;
-        new_node->next = NULL;
     } else {
         node_p it = q->first;
 
@@ -45,20 +44,26 @@ void queue_set(queue_p q, const customer_p new_customer) {
 
 customer_t queue_pop(queue_p q) {
     customer_t customer;
+    node_p rm = q->first;
 
-    if (queue_empty(q) == false) {
-        node_p rm = q->first;
-
-        q->first = rm->next;
-        customer = rm->customer;
-        free(rm);
-        q->len--;
-    }
+    q->first = rm->next;
+    customer = rm->customer;
+    free(rm);
+    q->len--;
 
     return customer;
 }
 
-int queue_length(queue_p q) {
+void queue_merge(queue_p dest, queue_p src) {
+    customer_t customer;
+
+    while (queue_empty(src) == false) {
+        customer = queue_pop(src);
+        queue_set(dest, &customer);
+    }
+}
+
+int queue_length(const queue_p q) {
     int len = 0;
 
     for (node_p it = q->first; it != NULL; it = it->next) {
@@ -68,6 +73,6 @@ int queue_length(queue_p q) {
     return len;
 }
 
-bool queue_empty(queue_p q) {
+bool queue_empty(const queue_p q) {
     return q->first == NULL;
 }

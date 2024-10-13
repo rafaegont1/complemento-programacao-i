@@ -5,6 +5,8 @@
 #include "malloc_dbg.h"
 #include "till.h"
 
+const char *DASHED_LINE = "----------------------------------------\n";
+
 static int read_line(char *str);
 static void new_customer(till_p tills);
 static void serve_customer(till_p tills);
@@ -26,6 +28,7 @@ int main() {
                "5) Imprimir o status dos caixas\n"
                "Digite um comando: ");
         scanf("%c%*c", &op);
+        printf("%s", DASHED_LINE);
 
         switch (op) {
             case '1': // -- Cadastrar cliente --
@@ -74,6 +77,8 @@ int main() {
                 break;
         }
 
+        printf("%s", DASHED_LINE);
+
     } while (op != '0');
 
     till_deinit(tills);
@@ -91,19 +96,25 @@ int read_line(char *str) {
     }
 
     tmp[strcspn(tmp, "\n")] = '\0';
+    strcpy(str, tmp);
 
     return 0;
 }
 
 static void new_customer(till_p tills) {
+    if (till_any_open(tills) == false) {
+        printf("Não há caixas abertos!\n");
+        return;
+    }
+
     int till_id;
     customer_t new_customer;
     till_p till;
 
     do {
         printf("Digite o número do caixa (1 a %d): ", TILL_COUNT);
-    } while (scanf("%d%*c", &till_id) != 1 &&
-             (till_id < 0 || till_id > TILL_COUNT));
+    } while ((scanf("%d%*c", &till_id) != 1) &&
+             (till_id < 1 || till_id > TILL_COUNT));
 
     till = till_find(tills, till_id);
     if (till->available == false) {
@@ -114,19 +125,24 @@ static void new_customer(till_p tills) {
     printf("Digite o nome do cliente: ");
     read_line(new_customer.name);
 
-    printf("Digite o CPF do cliente: ");
-    scanf("%d%*c", &new_customer.cpf);
+    // printf("Digite o CPF do cliente: ");
+    // scanf("%d%*c", &new_customer.cpf);
 
-    printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
-    scanf("%d%*c", &new_customer.priority);
+    // printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
+    // scanf("%d%*c", &new_customer.priority);
 
-    printf("Digite a quantidade de itens na compra do cliente: ");
-    scanf("%d%*c", &new_customer.items_qty);
+    // printf("Digite a quantidade de itens na compra do cliente: ");
+    // scanf("%d%*c", &new_customer.items_qty);
 
     queue_set(&till->queue, &new_customer);
 }
 
 static void serve_customer(till_p tills) {
+    if (till_any_open(tills) == false) {
+        printf("Não há caixas abertos!\n");
+        return;
+    }
+
     int till_id;
     till_p till;
     customer_t customer;
@@ -155,8 +171,8 @@ static void open_close_till(till_p tills) {
 
     do {
         printf("Selecione o número do caixa a ser aberto/fechado: ");
-    } while (scanf("%d%*c", &till_id) != 1 &&
-             (till_id < 0 || till_id > TILL_COUNT));
+    } while ((scanf("%d%*c", &till_id) != 1) &&
+             (till_id < 1 || till_id > TILL_COUNT));
 
     till = till_find(tills, till_id);
 
@@ -173,7 +189,30 @@ static void open_close_till(till_p tills) {
         till->available = !till->available;
     }
 
-    // TODO: passar todos os clientes do caixa fechado para algum caixa aberto
+    if (till->available == false && till->queue.len > 0) {
+        if (till_any_open(tills) == true) {
+            till_p dest;
+
+            do {
+                printf("Caixas disponíveis:");
+                for (int i = 0; i < TILL_COUNT; i++) {
+                    if (tills[i].available == true) {
+                        printf(" %d", tills[i].id);
+                    }
+                }
+                printf("\n"
+                       "O caixa %d tem clientes na fila\n"
+                       "Deseja mandá-los para o caixa: ", till->id);
+            } while ((scanf("%d%*c", &till_id) != 1) &&
+                     (till_id < 1 || till_id > TILL_COUNT) &&
+                     (dest = till_find(tills, till_id))->available == false);
+
+            queue_merge(&dest->queue, &till->queue);
+        } else {
+            printf("Impossível fechar caixa, pois não há outro aberto para "
+                   "alocar os %d cliente(s) deste caixa\n", till->queue.len);
+        }
+    }
 }
 
 static void print_customers(till_p tills) {
@@ -183,7 +222,7 @@ static void print_customers(till_p tills) {
         printf("Caixa número %d\n", tills[i].id);
 
         if (queue_empty(q)) {
-            printf("A fila está vazia!\n");
+            printf("\tA fila está vazia!\n");
             continue;
         }
 
@@ -197,7 +236,8 @@ static void print_customers(till_p tills) {
             printf("\tNome: %s\n"
                    "\tCPF: %d\n"
                    "\tPrioridade: %s\n"
-                   "\tQuantidade de itens: %d\n",
+                   "\tQuantidade de itens: %d\n"
+                   "\n",
                    c->name, c->cpf, priority, c->items_qty);
         }
     }

@@ -29,3 +29,12 @@ till_p till_find(const till_p tills, const int id) {
 
     return till;
 }
+
+bool till_any_open(const till_p tills) {
+    for (int i = 0; i < TILL_COUNT; i++) {
+        if (tills[i].available == true) {
+            return true;
+        }
+    }
+    return false;
+}

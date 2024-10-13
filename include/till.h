@@ -14,5 +14,6 @@ typedef struct {
 void till_init(till_p tills);
 void till_deinit(till_p tills);
 till_p till_find(const till_p tills, const int id);
+bool till_any_open(const till_p tills);
 
 #endif // TILL_H

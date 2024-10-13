@@ -30,7 +30,8 @@ queue_t queue_init();
 void queue_deinit(queue_p q);
 void queue_set(queue_p q, const customer_p new_customer);
 customer_t queue_pop(queue_p q);
-int queue_length(queue_p q);
-bool queue_empty(queue_p q);
+void queue_merge(queue_p dest, queue_p src);
+int queue_length(const queue_p q);
+bool queue_empty(const queue_p q);
 
 #endif // QUEUE_H
