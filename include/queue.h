@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct node_s {
     customer_t customer;
-    struct node_s *next;
+    struct node_s* next;
 } node_t, *node_p;
 
 typedef struct {
@@ -30,7 +30,7 @@ queue_t queue_init();
 void queue_deinit(queue_p q);
 void queue_set(queue_p q, const customer_p new_customer);
 customer_t queue_pop(queue_p q);
-void queue_merge(queue_p dest, queue_p src);
+void queue_merge(queue_p dst, queue_p src);
 int queue_length(const queue_p q);
 bool queue_empty(const queue_p q);
 

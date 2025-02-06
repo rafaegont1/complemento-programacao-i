@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "malloc_dbg.h"
 
 queue_t queue_init() {
     return (queue_t) { .first = NULL, .len = 0 };
@@ -30,8 +29,8 @@ void queue_set(queue_p q, const customer_p new_customer) {
     } else {
         node_p it = q->first;
 
-        while (it->next != NULL &&
-               it->next->customer.priority <= new_node->customer.priority) {
+        while ((it->next != NULL) &&
+               (it->next->customer.priority <= new_node->customer.priority)) {
             it = it->next;
         }
 
@@ -54,12 +53,12 @@ customer_t queue_pop(queue_p q) {
     return customer;
 }
 
-void queue_merge(queue_p dest, queue_p src) {
+void queue_merge(queue_p dst, queue_p src) {
     customer_t customer;
 
     while (queue_empty(src) == false) {
         customer = queue_pop(src);
-        queue_set(dest, &customer);
+        queue_set(dst, &customer);
     }
 }
 

@@ -2,20 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "malloc_dbg.h"
-#include "till.h"
+#include "market.h"
 
-const char *DASHED_LINE = "----------------------------------------\n";
+typedef enum {
+    OPT_EXIT = 0,
+    OPT_NEW_CUSTOMER = 1,
+    OPT_SERVE_CUSTOMER = 2,
+    OPT_OPEN_TILL = 3,
+    OPT_CLOSE_TILL = 4,
+    OPT_PRINT_TILLS = 5,
+    // OPT_TILLS_STATUS = 6,
+} option_t;
 
-static int read_line(char *str);
-static void new_customer(till_p tills);
-static void serve_customer(till_p tills);
-static void open_close_till(till_p tills);
-static void print_customers(till_p tills);
+const char* DASHED_LINE = "========================================\n";
 
 int main() {
     till_t tills[TILL_COUNT];
-    char op;
+    option_t opt;
 
     till_init(tills);
 
@@ -23,52 +26,47 @@ int main() {
         printf("MENU\n"
                "1) Cadastrar cliente\n"
                "2) Atender um cliente\n"
-               "3) Abrir ou fechar caixa\n"
-               "4) Imprimir a lista de clientes em espera\n"
-               "5) Imprimir o status dos caixas\n"
+               "3) Abrir caixa\n"
+               "4) Fechar caixa\n"
+               "5) Imprimir os caixas\n"
+               // "5) Imprimir a lista de clientes em espera\n"
+               // "6) Imprimir o status dos caixas\n"
+               "0) Sair do programa\n"
                "Digite um comando: ");
-        scanf("%c%*c", &op);
+        scanf("%u%*c", &opt);
         printf("%s", DASHED_LINE);
 
-        switch (op) {
-            case '1': // -- Cadastrar cliente --
-                // Solicitar nome, CPF, prioridade, e número de itens no
-                // carrinho. Adicionar o cliente à fila de acordo com a sua
-                // prioridade e o caixa escolhido.
-                new_customer(tills);
+        switch (opt) {
+            case OPT_NEW_CUSTOMER:
+                mkt_new_customer(tills);
                 break;
 
-            case '2': // -- Atender um cliente --
-                // Remover o cliente da fila com maior prioridade para ser
-                // atendido no caixa especificado.
-                serve_customer(tills);
+            case OPT_SERVE_CUSTOMER:
+                mkt_serve_customer(tills);
                 break;
 
-            case '3': // -- Abrir ou fechar caixa --
-                // Permitir ao usuário abrir ou fechar um dos 5 caixas
-                // disponíveis. Se o caixa estiver fechado, os clientes na fila
-                // desse caixa devem ser realocados para outro caixa aberto.
-                open_close_till(tills);
+            case OPT_OPEN_TILL:
+                mkt_open_till(tills);
                 break;
 
-            case '4': // -- Imprimir a lista de clientes em espera --
-                // Exibir os dados dos clientes em espera em cada caixa,
-                // organizados por prioridade.
-                print_customers(tills);
+            case OPT_CLOSE_TILL:
+                mkt_close_till(tills);
                 break;
 
-            case '5': // -- Imprimir o status dos caixas --
-                // Exibir o estado (aberto ou fechado) de cada caixa e o número
-                // de clientes em espera.
-                for (int i = 0; i < TILL_COUNT; i++) {
-                    printf("O caixa número %d está %s e tem %d clientes\n",
-                           tills[i].id,
-                           tills[i].available ? "aberto" : "fechado",
-                           tills[i].queue.len);
-                }
+            case OPT_PRINT_TILLS:
+                mkt_print_tills(tills);
                 break;
 
-            case '0': // Ao digitar 0, o programa deve terminar.
+            // case OPT_TILLS_STATUS:
+            //     for (int i = 0; i < TILL_COUNT; i++) {
+            //         printf("O caixa número %d está %s e tem %d clientes\n",
+            //                tills[i].id,
+            //                tills[i].is_available ? "aberto" : "fechado",
+            //                tills[i].queue.len);
+            //     }
+            //     break;
+
+            case OPT_EXIT:
                 printf("Saindo...\n");
                 break;
 
@@ -79,166 +77,14 @@ int main() {
 
         printf("%s", DASHED_LINE);
 
-    } while (op != '0');
+        if (till_any_open(tills) == false) {
+            printf("Nenhum caixa aberto. Fechando mercado\n");
+            break;
+        }
+
+    } while (opt != OPT_EXIT);
 
     till_deinit(tills);
 
     return 0;
-}
-
-int read_line(char *str) {
-    char tmp[256];
-
-    if (fgets(tmp, sizeof(tmp), stdin) == NULL) {
-        fprintf(stderr, "fgets() falhou\n");
-        str[0] = '\0';
-        return 1;
-    }
-
-    tmp[strcspn(tmp, "\n")] = '\0';
-    strcpy(str, tmp);
-
-    return 0;
-}
-
-static void new_customer(till_p tills) {
-    if (till_any_open(tills) == false) {
-        printf("Não há caixas abertos!\n");
-        return;
-    }
-
-    int till_id;
-    customer_t new_customer;
-    till_p till;
-
-    do {
-        printf("Digite o número do caixa (1 a %d): ", TILL_COUNT);
-    } while ((scanf("%d%*c", &till_id) != 1) &&
-             (till_id < 1 || till_id > TILL_COUNT));
-
-    till = till_find(tills, till_id);
-    if (till->available == false) {
-        printf("O caixa de número %d está fechado!\n", till_id);
-        return;
-    }
-
-    printf("Digite o nome do cliente: ");
-    read_line(new_customer.name);
-
-    // printf("Digite o CPF do cliente: ");
-    // scanf("%d%*c", &new_customer.cpf);
-
-    // printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
-    // scanf("%d%*c", &new_customer.priority);
-
-    // printf("Digite a quantidade de itens na compra do cliente: ");
-    // scanf("%d%*c", &new_customer.items_qty);
-
-    queue_set(&till->queue, &new_customer);
-}
-
-static void serve_customer(till_p tills) {
-    if (till_any_open(tills) == false) {
-        printf("Não há caixas abertos!\n");
-        return;
-    }
-
-    int till_id;
-    till_p till;
-    customer_t customer;
-
-    printf("Digite o número do caixa a ter cliente atendido: ");
-    scanf("%d%*c", &till_id);
-
-    till = till_find(tills, till_id);
-    if (till->available == false) {
-        printf("O caixa de número %d está fechado!\n", till_id);
-        return;
-    } else if (queue_empty(&till->queue)) {
-        printf("O caixa de número %d está vazio!\n", till_id);
-        return;
-    }
-
-    customer = queue_pop(&till->queue);
-    printf("O cliente de nome %s foi antendido no caixa de número %d",
-           customer.name, till_id);
-}
-
-static void open_close_till(till_p tills) {
-    int till_id;
-    till_p till;
-    char op;
-
-    do {
-        printf("Selecione o número do caixa a ser aberto/fechado: ");
-    } while ((scanf("%d%*c", &till_id) != 1) &&
-             (till_id < 1 || till_id > TILL_COUNT));
-
-    till = till_find(tills, till_id);
-
-    do {
-        if (till->available == true) {
-            printf("O caixa está aberto. quer fechá-lo? (s ou n): ");
-        } else {
-            printf("O caixa está fechado. quer abri-lo? (s ou n): ");
-        }
-    } while (scanf("%c%*c", &op) != 1 &&
-             op != 's' && op != 'n' && op != 'S' && op != 'N');
-
-    if (op == 's' || op == 'S') {
-        till->available = !till->available;
-    }
-
-    if (till->available == false && till->queue.len > 0) {
-        if (till_any_open(tills) == true) {
-            till_p dest;
-
-            do {
-                printf("Caixas disponíveis:");
-                for (int i = 0; i < TILL_COUNT; i++) {
-                    if (tills[i].available == true) {
-                        printf(" %d", tills[i].id);
-                    }
-                }
-                printf("\n"
-                       "O caixa %d tem clientes na fila\n"
-                       "Deseja mandá-los para o caixa: ", till->id);
-            } while ((scanf("%d%*c", &till_id) != 1) &&
-                     (till_id < 1 || till_id > TILL_COUNT) &&
-                     (dest = till_find(tills, till_id))->available == false);
-
-            queue_merge(&dest->queue, &till->queue);
-        } else {
-            printf("Impossível fechar caixa, pois não há outro aberto para "
-                   "alocar os %d cliente(s) deste caixa\n", till->queue.len);
-        }
-    }
-}
-
-static void print_customers(till_p tills) {
-    for (int i = 0; i < TILL_COUNT; i++) {
-        queue_p q = &tills[i].queue;
-
-        printf("Caixa número %d\n", tills[i].id);
-
-        if (queue_empty(q)) {
-            printf("\tA fila está vazia!\n");
-            continue;
-        }
-
-        for (node_p it = q->first; it != NULL; it = it->next) {
-            customer_p c = &it->customer;
-            const char *priority = c->priority == 1 ? "alta" :
-                                   c->priority == 2 ? "média" :
-                                   c->priority == 3 ? "baixa" :
-                                   "undefined";
-
-            printf("\tNome: %s\n"
-                   "\tCPF: %d\n"
-                   "\tPrioridade: %s\n"
-                   "\tQuantidade de itens: %d\n"
-                   "\n",
-                   c->name, c->cpf, priority, c->items_qty);
-        }
-    }
 }

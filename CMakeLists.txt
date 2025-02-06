@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Define the project name
-project(prog_i)
+project(market)
 
 # Generate symbols for IDE indexer
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
