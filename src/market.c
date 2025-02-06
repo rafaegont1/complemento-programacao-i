@@ -142,27 +142,21 @@ void mkt_print_tills(till_p tills) {
         queue_p q = &tills[i].queue;
 
         printf("Caixa número %d\n", tills[i].id);
-
-        if (tills[i].is_available == false) {
-            printf("FECHADO\n");
-            continue;
-        }
-
-        printf("ABERTO\n");
+        printf("%s\n", tills[i].is_available ? "ABERTO" : "FECHADO");
 
         for (node_p it = q->first; it != NULL; it = it->next) {
             customer_p c = &it->customer;
-            const char* priority = c->priority == 1 ? "alta" :
-                                   c->priority == 2 ? "média" :
-                                   c->priority == 3 ? "baixa" :
-                                   "indefinido";
+            const char* priority =
+                c->priority == 1 ? "alta" :
+                c->priority == 2 ? "média" :
+                c->priority == 3 ? "baixa" :
+                "indefinido";
 
-            printf("\tNome: %s\n"
-                   "\tCPF: %d\n"
-                   "\tPrioridade: %s\n"
-                   "\tQuantidade de itens: %d\n"
-                   "\n",
-                   c->name, c->cpf, priority, c->items_qty);
+            printf("\tNome: %s\n", c->name);
+            printf("\tCPF: %d\n", c->cpf);
+            printf("\tPrioridade: %s\n", priority);
+            printf("\tQuantidade de itens: %d\n", c->items_qty);
+            printf("\n");
         }
     }
 }
