@@ -3,17 +3,21 @@
 #include <stdio.h>
 #include <string.h>
 
-int read_line(char* str) {
-    char tmp[256];
+void clear_buffer()
+{
+    char c;
+    while ((c= getchar()) != '\n' && c != EOF);
+}
 
-    if (fgets(tmp, sizeof(tmp), stdin) == NULL) {
+int read_line(char* str, int str_sz)
+{
+    if (fgets(str, str_sz, stdin) == NULL) {
         fprintf(stderr, "fgets() falhou\n");
         str[0] = '\0';
         return 1;
     }
 
-    tmp[strcspn(tmp, "\n")] = '\0';
-    strcpy(str, tmp);
+    str[strcspn(str, "\n")] = '\0';
 
     return 0;
 }

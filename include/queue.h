@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define CUSTOMER_NAME_SIZE 100
+
 typedef enum {
     PRIORITY_HIGH   = 1,
     PRIORITY_MEDIUM = 2,
@@ -10,28 +12,28 @@ typedef enum {
 } priority_t;
 
 typedef struct {
-    char name[100];
+    char name[CUSTOMER_NAME_SIZE];
     int cpf;
     priority_t priority;
     int items_qty;
-} customer_t, *customer_p;
+} customer_t;
 
 typedef struct node_s {
     customer_t customer;
     struct node_s* next;
-} node_t, *node_p;
+} node_t;
 
 typedef struct {
-    node_p first;
+    node_t* first;
     int len;
-} queue_t, *queue_p;
+} queue_t;
 
 queue_t queue_init();
-void queue_deinit(queue_p q);
-void queue_set(queue_p q, const customer_p new_customer);
-customer_t queue_pop(queue_p q);
-void queue_merge(queue_p dst, queue_p src);
-int queue_length(const queue_p q);
-bool queue_empty(const queue_p q);
+void queue_deinit(queue_t* q);
+void queue_set(queue_t* q, const customer_t* new_customer);
+customer_t queue_pop(queue_t* q);
+void queue_merge(queue_t* dst, queue_t* src);
+int queue_length(const queue_t* q);
+bool queue_empty(const queue_t* q);
 
 #endif // QUEUE_H

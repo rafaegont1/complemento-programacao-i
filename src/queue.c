@@ -3,22 +3,28 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-queue_t queue_init() {
-    return (queue_t) { .first = NULL, .len = 0 };
+queue_t queue_init()
+{
+    return (queue_t) {
+        .first = NULL,
+        .len = 0
+    };
 }
 
-void queue_deinit(queue_p q) {
-    node_p it = q->first, rm;
+void queue_deinit(queue_t* q)
+{
+    node_t* it = q->first;
 
     while (it != NULL) {
-        rm = it;
+        node_t* rm = it;
         it = it->next;
         free(rm);
     }
 }
 
-void queue_set(queue_p q, const customer_p new_customer) {
-    node_p new_node = (node_p) malloc(sizeof(node_t));
+void queue_set(queue_t* q, const customer_t* new_customer)
+{
+    node_t* new_node = (node_t*) malloc(sizeof(node_t));
 
     new_node->customer = *new_customer;
 
@@ -27,7 +33,7 @@ void queue_set(queue_p q, const customer_p new_customer) {
         new_node->next = q->first;
         q->first = new_node;
     } else {
-        node_p it = q->first;
+        node_t* it = q->first;
 
         while ((it->next != NULL) &&
                (it->next->customer.priority <= new_node->customer.priority)) {
@@ -41,9 +47,10 @@ void queue_set(queue_p q, const customer_p new_customer) {
     q->len++;
 }
 
-customer_t queue_pop(queue_p q) {
+customer_t queue_pop(queue_t* q)
+{
     customer_t customer;
-    node_p rm = q->first;
+    node_t* rm = q->first;
 
     q->first = rm->next;
     customer = rm->customer;
@@ -53,7 +60,8 @@ customer_t queue_pop(queue_p q) {
     return customer;
 }
 
-void queue_merge(queue_p dst, queue_p src) {
+void queue_merge(queue_t* dst, queue_t* src)
+{
     customer_t customer;
 
     while (queue_empty(src) == false) {
@@ -62,16 +70,18 @@ void queue_merge(queue_p dst, queue_p src) {
     }
 }
 
-int queue_length(const queue_p q) {
+int queue_length(const queue_t* q)
+{
     int len = 0;
 
-    for (node_p it = q->first; it != NULL; it = it->next) {
+    for (node_t* it = q->first; it != NULL; it = it->next) {
         len++;
     }
 
     return len;
 }
 
-bool queue_empty(const queue_p q) {
+bool queue_empty(const queue_t* q)
+{
     return q->first == NULL;
 }
