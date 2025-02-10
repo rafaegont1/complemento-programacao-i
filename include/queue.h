@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #define CUSTOMER_NAME_SIZE 100
+#define CPF_SIZE 16
 
 typedef enum {
     PRIORITY_HIGH   = 1,
@@ -13,7 +14,7 @@ typedef enum {
 
 typedef struct {
     char name[CUSTOMER_NAME_SIZE];
-    int cpf;
+    char cpf[CPF_SIZE];
     priority_t priority;
     int items_qty;
 } customer_t;
@@ -32,8 +33,6 @@ queue_t queue_init();
 void queue_deinit(queue_t* q);
 void queue_set(queue_t* q, const customer_t* new_customer);
 customer_t queue_pop(queue_t* q);
-void queue_merge(queue_t* dst, queue_t* src);
-int queue_length(const queue_t* q);
 bool queue_empty(const queue_t* q);
 
 #endif // QUEUE_H

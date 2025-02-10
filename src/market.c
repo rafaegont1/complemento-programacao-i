@@ -5,7 +5,7 @@
 #include "queue.h"
 #include "util.h"
 
-static inline int mkt_scanf_id(const char* msg)
+static int mkt_scanf_id(const char* msg)
 {
     int id;
 
@@ -23,11 +23,11 @@ static void mkt_reallocate_customers(cash_reg_t* cash_regs, cash_reg_t* src)
         cash_reg_t* dst = NULL;
 
         for (int i = 0; i < MKT_CASH_REG_COUNT; i++) {
-            cash_reg_t* iter = &cash_regs[i];
-            if (iter == src || !iter->is_available) {
+            cash_reg_t* it = &cash_regs[i];
+            if (it == src || !it->is_available) {
                 continue;
-            } else if (dst == NULL || iter->queue.len < dst->queue.len) {
-                dst = iter;
+            } else if (dst == NULL || it->queue.len < dst->queue.len) {
+                dst = it;
                 id = i + 1;
             }
         }
@@ -66,7 +66,7 @@ int mkt_count_open_cash_reg(const cash_reg_t* mkt)
 bool mkt_any_cash_reg_open(const cash_reg_t* mkt)
 {
     for (int i = 0; i < MKT_CASH_REG_COUNT; i++) {
-        if (mkt[i].is_available == true) return true;
+        if (mkt[i].is_available) return true;
     }
 
     return false;
@@ -87,14 +87,14 @@ void mkt_new_customer(cash_reg_t* mkt)
     printf("Digite o nome do cliente: ");
     read_line(customer.name, CUSTOMER_NAME_SIZE);
 
-    // printf("Digite o CPF do cliente: ");
-    // scanf("%d%*c", &customer.cpf);
+    printf("Digite o CPF do cliente: ");
+    read_line(customer.cpf, CPF_SIZE);
 
-    // printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
-    // scanf("%u%*c", &customer.priority);
+    printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
+    scanf("%u%*c", &customer.priority);
 
-    // printf("Digite a quantidade de itens na compra do cliente: ");
-    // scanf("%d%*c", &customer.items_qty);
+    printf("Digite a quantidade de itens na compra do cliente: ");
+    scanf("%d%*c", &customer.items_qty);
 
     queue_set(&mkt[idx].queue, &customer);
 }
@@ -126,7 +126,7 @@ void mkt_toggle_cash_reg(cash_reg_t* mkt)
     printf("%s caixa número %d\n", mkt[idx].is_available ? "Fechando" : "Abrindo", mkt[idx].id);
 
     // Realocar clientes se estiver fechando o caixa
-    if (mkt[idx].is_available == true && mkt[idx].queue.len > 0) {
+    if (mkt[idx].is_available && mkt[idx].queue.len > 0) {
         // Se este for o único caixa aberto e ainda tem clientes, não tem como fechá-lo
         if (mkt_count_open_cash_reg(mkt) == 1) {
             printf("Não há como realocar clientes, pois os outros caixas estão fechados\n");
@@ -160,7 +160,7 @@ void mkt_print_cash_regs(const cash_reg_t* mkt)
                 "indefinido";
 
             printf("\tNome: %s\n", c->name);
-            printf("\tCPF: %d\n", c->cpf);
+            printf("\tCPF: %s\n", c->cpf);
             printf("\tPrioridade: %s\n", priority);
             printf("\tQuantidade de itens: %d\n", c->items_qty);
             printf("\n");
