@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #define CUSTOMER_NAME_SIZE 100
-#define CPF_SIZE 16
+#define CPF_SIZE 12
 
 typedef enum {
     PRIORITY_HIGH   = 1,

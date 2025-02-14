@@ -1,6 +1,7 @@
 #include "market.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "cash_reg.h"
 #include "queue.h"
 #include "util.h"
@@ -11,7 +12,7 @@ static int mkt_scanf_id(const char* msg)
 
     do {
         printf("%s (1 a %d): ", msg, MKT_CASH_REG_COUNT);
-    } while ((scanf("%d%*c", &id) != 1) && (id < 1 || id > MKT_CASH_REG_COUNT));
+    } while ((scanf("%d%*c", &id) != 1) || (id < 1) || (id > MKT_CASH_REG_COUNT));
 
     return id;
 }
@@ -87,14 +88,18 @@ void mkt_new_customer(cash_reg_t* mkt)
     printf("Digite o nome do cliente: ");
     read_line(customer.name, CUSTOMER_NAME_SIZE);
 
-    printf("Digite o CPF do cliente: ");
-    read_line(customer.cpf, CPF_SIZE);
+    do {
+        printf("Digite o CPF do cliente (11 dígitos): ");
+        read_line(customer.cpf, CPF_SIZE);
+    } while (strlen(customer.cpf) != 11);
 
-    printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
-    scanf("%u%*c", &customer.priority);
+    do {
+        printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
+    } while ((scanf("%u%*c", &customer.priority) != 1) || (customer.priority < 1) || (customer.priority > 3));
 
-    printf("Digite a quantidade de itens na compra do cliente: ");
-    scanf("%d%*c", &customer.items_qty);
+    do {
+        printf("Digite a quantidade de itens na compra do cliente (número positivo): ");
+    } while ((scanf("%d%*c", &customer.items_qty) != 1) || (customer.items_qty < 0));
 
     queue_set(&mkt[idx].queue, &customer);
 }
