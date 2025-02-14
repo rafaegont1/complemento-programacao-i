@@ -17,14 +17,14 @@ static int mkt_scanf_id(const char* msg)
     return id;
 }
 
-static void mkt_reallocate_customers(cash_reg_t* cash_regs, cash_reg_t* src)
+static void mkt_reallocate_customers(cash_reg_t* mkt, cash_reg_t* src)
 {
     while (src->queue.len > 0) {
         int id = -1;
         cash_reg_t* dst = NULL;
 
         for (int i = 0; i < MKT_CASH_REG_COUNT; i++) {
-            cash_reg_t* it = &cash_regs[i];
+            cash_reg_t* it = &mkt[i];
             if (it == src || !it->is_available) {
                 continue;
             } else if (dst == NULL || it->queue.len < dst->queue.len) {
@@ -51,6 +51,21 @@ static bool is_only_digit(const char* str)
     }
 
     return true;
+}
+
+static bool cpf_exists(const cash_reg_t* mkt, const char* cpf)
+{
+    for (int i = 0; i < MKT_CASH_REG_COUNT; i++) {
+        for (node_t* it = mkt->queue.first; it != NULL; it = it->next) {
+            if (strcmp(it->customer.cpf, cpf) == 0) {
+                printf("CPF já cadastrado\n");
+                clear_buffer();
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void mkt_init(cash_reg_t* mkt)
@@ -105,7 +120,7 @@ void mkt_new_customer(cash_reg_t* mkt)
     do {
         printf("Digite o CPF do cliente (11 dígitos): ");
         read_line(customer.cpf, CPF_SIZE);
-    } while ((strlen(customer.cpf) != 11) || !is_only_digit(customer.cpf));
+    } while ((strlen(customer.cpf) != 11) || !is_only_digit(customer.cpf) || cpf_exists(mkt, customer.cpf));
 
     do {
         printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
@@ -113,7 +128,7 @@ void mkt_new_customer(cash_reg_t* mkt)
 
     do {
         printf("Digite a quantidade de itens na compra do cliente (número positivo): ");
-    } while ((scanf("%d%*c", &customer.items_qty) != 1) || (customer.items_qty < 0));
+    } while ((scanf("%d%*c", &customer.items_qty) != 1) || (customer.items_qty < 1));
 
     queue_set(&mkt[idx].queue, &customer);
 }
