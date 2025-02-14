@@ -39,6 +39,20 @@ static void mkt_reallocate_customers(cash_reg_t* cash_regs, cash_reg_t* src)
     }
 }
 
+static bool is_only_digit(const char* str)
+{
+    while (*str != '\0') {
+        if (*str < '0' || *str > '9') {
+            printf("Utilizar apenas dígitos!\n");
+            clear_buffer();
+            return false;
+        }
+        str++;
+    }
+
+    return true;
+}
+
 void mkt_init(cash_reg_t* mkt)
 {
     for (int i = 0; i < MKT_CASH_REG_COUNT; i++) {
@@ -91,7 +105,7 @@ void mkt_new_customer(cash_reg_t* mkt)
     do {
         printf("Digite o CPF do cliente (11 dígitos): ");
         read_line(customer.cpf, CPF_SIZE);
-    } while (strlen(customer.cpf) != 11);
+    } while ((strlen(customer.cpf) != 11) || !is_only_digit(customer.cpf));
 
     do {
         printf("Digite a prioridade do cliente (1 alta | 2 média | 3 baixa): ");
